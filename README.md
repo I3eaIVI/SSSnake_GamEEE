@@ -9,25 +9,18 @@
 
 ### หลักการทำงาน
 
-Input: Joystick อ่านค่าแกน X/Y เพื่อกำหนดทิศทางงู (ไม่ให้กลับหลังหันทันที) ส่วน Potentiometer กำหนดความเร็วของเกมแบบต่อเนื่อง
-
-Process: บอร์ดคำนวณตำแหน่งงู สุ่มตำแหน่งแอปเปิ้ล ตรวจการกินและการชนตัวเอง และนับคะแนนจากความยาวที่เพิ่มขึ้น งูเดินทะลุขอบจอไปโผล่อีกฝั่งได้
-
-Output: LED Matrix แสดงตัวงู แอปเปิ้ล (กะพริบ) และข้อความ SNAKE, GAME OVER, SCORE
-
-Network: เมื่อเกมจบ บอร์ดส่งคะแนนด้วย HTTPS POST ไปยัง Firebase
-
-Web: หน้าเว็บอ่านคะแนน เรียงจากมากไปน้อย แสดง 10 อันดับแรก และรีเฟรชอัตโนมัติทุก 10 วินาที
+* Input: Joystick อ่านค่าแกน X/Y เพื่อกำหนดทิศทางงู (ไม่ให้กลับหลังหันทันที) ส่วน Potentiometer กำหนดความเร็วของเกมแบบต่อเนื่อง
+* Process: บอร์ดคำนวณตำแหน่งงู สุ่มตำแหน่งแอปเปิ้ล ตรวจการกินและการชนตัวเอง และนับคะแนนจากความยาวที่เพิ่มขึ้น งูเดินทะลุขอบจอไปโผล่อีกฝั่งได้
+* Output: LED Matrix แสดงตัวงู แอปเปิ้ล (กะพริบ) และข้อความ SNAKE, GAME OVER, SCORE
+* Network: เมื่อเกมจบ บอร์ดส่งคะแนนด้วย HTTPS POST ไปยัง Firebase
+* Web: หน้าเว็บอ่านคะแนน เรียงจากมากไปน้อย แสดง 10 อันดับแรก และรีเฟรชอัตโนมัติทุก 10 วินาที
 
 ### อุปกรณ์และเครื่องมือ
 
-Arduino UNO R4 WiFi (LED Matrix 12x8 และ WiFi ในตัว)
-
-Joystick module, Potentiometer, Breadboard และสายจัมเปอร์
-
-Arduino IDE, ไลบรารี Arduino_LED_Matrix, ArduinoGraphics, WiFiS3
-
-Firebase Realtime Database, HTML/CSS/JavaScript, GitHub Pages
+1. Arduino UNO R4 WiFi (LED Matrix 12x8 และ WiFi ในตัว)
+2. Joystick module, Potentiometer, Breadboard และสายจัมเปอร์
+3. Arduino IDE, ไลบรารี Arduino_LED_Matrix, ArduinoGraphics, WiFiS3
+4. Firebase Realtime Database, HTML/CSS/JavaScript, GitHub Pages
 
 ## Contributor
 | Student ID | Name | Profile |
