@@ -1,9 +1,11 @@
 /*
  * Snake game for Arduino UNO R4 WiFi (built-in 12x8 LED matrix)
- */
+*/
 
 #include "ArduinoGraphics.h" // must be included before Arduino_LED_Matrix.h
 #include "Arduino_LED_Matrix.h"
+#include <WiFiS3.h>
+#include "arduino_secrets.h" // SECRET_SSID and SECRET_PASS (do NOT upload this file to GitHub)
 
 // ------------------------- user config ------------------------- //
 
@@ -15,6 +17,10 @@ struct Pin {
 
 const short initialSnakeLength = 3; // 1...20, recommended 3
 const int joystickThreshold = 160;  // joystick dead zone
+
+// Firebase Realtime Database host, WITHOUT "https://" and without a trailing "/"
+// Example: "snake-leaderboard-12345-default-rtdb.asia-southeast1.firebasedatabase.app"
+const char FIREBASE_HOST[] = "sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
 // ------------------------- variables --------------------------- //
 
@@ -63,6 +69,7 @@ void setup() {
 	snake.col = random(COLS);
 	calibrateJoystick(); // do not touch the joystick now
 	scrollText("SNAKE");
+	connectWiFi(); // the game still works offline if this fails
 }
 
 void loop() {
@@ -211,7 +218,7 @@ void handleGameStates() {
 	scrollText(gameOver ? "GAME OVER" : "YOU WIN");
 	scrollText("SCORE " + String(score));
 
-	submitScore(score); // TODO: send the score to the leaderboard (WiFi)
+	submitScore(score); // send the score to the online leaderboard
 
 	// reset the game
 	win = false;
@@ -228,10 +235,55 @@ void handleGameStates() {
 	while (joystickMoved()) {} // wait for the joystick to come back
 }
 
-// placeholder for the online leaderboard
+// ------------------------- leaderboard ------------------------- //
+
+bool connectWiFi() {
+	if (WiFi.status() == WL_NO_MODULE) return false;
+	if (WiFi.status() == WL_CONNECTED) return true;
+
+	Serial.print("Connecting to WiFi...");
+	unsigned long start = millis();
+	while (WiFi.status() != WL_CONNECTED && millis() - start < 15000) {
+		WiFi.begin(SECRET_SSID, SECRET_PASS);
+		delay(1000);
+	}
+	Serial.println(WiFi.status() == WL_CONNECTED ? " connected" : " failed");
+	return WiFi.status() == WL_CONNECTED;
+}
+
+// sends the score to Firebase: POST /scores.json  {"score": N, "ts": <server time>}
 void submitScore(int score) {
 	Serial.print("Score: ");
 	Serial.println(score);
+	if (score <= 0) return; // do not post empty games
+
+	if (!connectWiFi()) {
+		Serial.println("No WiFi, score not sent");
+		return;
+	}
+
+	WiFiSSLClient client;
+	if (!client.connect(FIREBASE_HOST, 443)) {
+		Serial.println("Cannot reach Firebase, score not sent");
+		return;
+	}
+
+	String body = "{\"score\":" + String(score) + ",\"ts\":{\".sv\":\"timestamp\"}}";
+	client.println("POST /scores.json HTTP/1.1");
+	client.print("Host: ");
+	client.println(FIREBASE_HOST);
+	client.println("Content-Type: application/json");
+	client.print("Content-Length: ");
+	client.println(body.length());
+	client.println("Connection: close");
+	client.println();
+	client.print(body);
+
+	// read the status line (expect "HTTP/1.1 200 OK")
+	unsigned long t = millis();
+	while (client.connected() && !client.available() && millis() - t < 5000) {}
+	if (client.available()) Serial.println(client.readStringUntil('\n'));
+	client.stop();
 }
 
 void calibrateJoystick() {

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snake Leaderboard</title>
+<style>
+  :root {
+    --bg: #f4f6f3; --card: #ffffff; --text: #1d2a1d; --muted: #6b7a6b;
+    --accent: #2e9e44; --line: #e2e8e2; --gold: #e0a800; --silver: #8a949c; --bronze: #b5703a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101510; --card: #1a221a; --text: #e8f1e8; --muted: #8fa08f;
+      --accent: #4ade80; --line: #2a352a; --gold: #facc15; --silver: #b0bac2; --bronze: #d9895a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
+  }
+  main { max-width: 520px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 1.8rem; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: .95rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 12px 16px; text-align: left; }
+  th { font-size: .8rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
+  td { border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  .rank { width: 56px; font-weight: 700; }
+  .score { font-weight: 700; font-size: 1.15rem; color: var(--accent); }
+  .time { color: var(--muted); font-size: .85rem; text-align: right; }
+  th:last-child { text-align: right; }
+  tr.r1 .rank { color: var(--gold); } tr.r2 .rank { color: var(--silver); } tr.r3 .rank { color: var(--bronze); }
+  .msg { padding: 28px 16px; text-align: center; color: var(--muted); }
+  .status { margin-top: 12px; font-size: .8rem; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🐍 Snake Leaderboard</h1>
+  <p class="sub">10 อันดับสูงสุด ส่งคะแนนจาก Arduino UNO R4 WiFi โดยตรง</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>อันดับ</th><th>คะแนน</th><th>เวลา</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="msg" class="msg">กำลังโหลด...</div>
+  </div>
+  <p class="status" id="status"></p>
+</main>
+
+<script>
+// Put your Firebase Realtime Database URL here (no trailing slash)
+const DB_URL = "https://sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app";
+const REFRESH_MS = 10000;
+
+const rowsEl = document.getElementById("rows");
+const msgEl = document.getElementById("msg");
+const statusEl = document.getElementById("status");
+
+function fmtTime(ts) {
+  if (!ts) return "";
+  return new Date(ts).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+async function load() {
+  try {
+    const url = DB_URL + '/scores.json?orderBy="score"&limitToLast=10';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const list = Object.values(data || {})
+      .filter(x => x && typeof x.score === "number")
+      .sort((a, b) => b.score - a.score || (a.ts || 0) - (b.ts || 0))
+      .slice(0, 10);
+
+    rowsEl.replaceChildren();
+    list.forEach((item, i) => {
+      const tr = document.createElement("tr");
+      tr.className = "r" + (i + 1);
+      const cells = [
+        ["rank", String(i + 1)],
+        ["score", String(item.score)],
+        ["time", fmtTime(item.ts)]
+      ];
+      cells.forEach(([cls, text]) => {
+        const td = document.createElement("td");
+        td.className = cls;
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      rowsEl.appendChild(tr);
+    });
+
+    msgEl.style.display = list.length ? "none" : "block";
+    msgEl.textContent = "ยังไม่มีคะแนน ลองเล่นเกมดูสิ!";
+    statusEl.textContent = "อัปเดตล่าสุด " + new Date().toLocaleTimeString("th-TH");
+  } catch (e) {
+    msgEl.style.display = "block";
+    msgEl.textContent = "โหลดข้อมูลไม่สำเร็จ";
+    statusEl.textContent = String(e);
+  }
+}
+
+load();
+setInterval(load, REFRESH_MS);
+</script>
+</body>
+</html>

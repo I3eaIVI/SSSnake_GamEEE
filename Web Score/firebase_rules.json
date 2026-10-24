@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "scores": {
+      ".read": true,
+      ".indexOn": ["score"],
+      "$id": {
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['score','ts']) && newData.child('score').isNumber() && newData.child('score').val() >= 0 && newData.child('score').val() <= 500"
+      }
+    }
+  }
+}
