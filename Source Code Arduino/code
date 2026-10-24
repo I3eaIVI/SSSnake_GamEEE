@@ -1,0 +1,246 @@
+/*
+ * Snake game for Arduino UNO R4 WiFi (built-in 12x8 LED matrix)
+ */
+
+#include "ArduinoGraphics.h" // must be included before Arduino_LED_Matrix.h
+#include "Arduino_LED_Matrix.h"
+
+// ------------------------- user config ------------------------- //
+
+struct Pin {
+	static const short joystickX = A2;
+	static const short joystickY = A3;
+	static const short potentiometer = A5; // snake speed control
+};
+
+const short initialSnakeLength = 3; // 1...20, recommended 3
+const int joystickThreshold = 160;  // joystick dead zone
+
+// ------------------------- variables --------------------------- //
+
+const int ROWS = 8;
+const int COLS = 12;
+
+ArduinoLEDMatrix matrix;
+byte frame[ROWS][COLS] = {}; // what is shown on the matrix
+
+struct Point {
+	int row = 0, col = 0;
+	Point(int row = 0, int col = 0): row(row), col(col) {}
+};
+
+struct Coordinate {
+	int x = 0, y = 0;
+	Coordinate(int x = 0, int y = 0): x(x), y(y) {}
+};
+
+bool win = false;
+bool gameOver = false;
+
+Point snake;
+Point food(-1, -1);
+Coordinate joystickHome(500, 500);
+
+int snakeLength = initialSnakeLength;
+int snakeSpeed = 100;   // delay between steps in ms, set by the potentiometer
+int snakeDirection = 0; // 0 = not moving
+
+const short up = 1;
+const short right = 2;
+const short down = 3; // 'down - 2' must be 'up'
+const short left = 4; // 'left - 2' must be 'right'
+
+int gameboard[ROWS][COLS] = {}; // snake body segments
+
+// ------------------------- main -------------------------------- //
+
+void setup() {
+	Serial.begin(115200);
+	analogReadResolution(10); // same 0...1023 range as the classic Uno
+	matrix.begin();
+	randomSeed(analogRead(A4));
+	snake.row = random(ROWS);
+	snake.col = random(COLS);
+	calibrateJoystick(); // do not touch the joystick now
+	scrollText("SNAKE");
+}
+
+void loop() {
+	generateFood();
+	scanJoystick();
+	calculateSnake();
+	handleGameStates();
+}
+
+// ------------------------- display ----------------------------- //
+
+void render(bool foodOn) {
+	for (int r = 0; r < ROWS; r++) {
+		for (int c = 0; c < COLS; c++) {
+			frame[r][c] = gameboard[r][c] > 0 ? 1 : 0;
+		}
+	}
+	if (foodOn && food.row >= 0) frame[food.row][food.col] = 1;
+	matrix.renderBitmap(frame, ROWS, COLS);
+}
+
+void scrollText(const String &text) {
+	matrix.beginDraw();
+	matrix.stroke(0xFFFFFFFF);
+	matrix.textScrollSpeed(60);
+	matrix.textFont(Font_5x7);
+	matrix.beginText(0, 1, 0xFFFFFF);
+	matrix.print("   " + text + "   ");
+	matrix.endText(SCROLL_LEFT);
+	matrix.endDraw();
+}
+
+// ------------------------- game logic -------------------------- //
+
+void generateFood() {
+	if (food.row == -1 || food.col == -1) {
+		if (snakeLength >= ROWS * COLS) {
+			win = true;
+			return;
+		}
+		do {
+			food.col = random(COLS);
+			food.row = random(ROWS);
+		} while (gameboard[food.row][food.col] > 0);
+	}
+}
+
+bool joystickMoved() {
+	int x = analogRead(Pin::joystickX);
+	int y = analogRead(Pin::joystickY);
+	return y < joystickHome.y - joystickThreshold || y > joystickHome.y + joystickThreshold
+	       || x < joystickHome.x - joystickThreshold || x > joystickHome.x + joystickThreshold;
+}
+
+// reads joystick + potentiometer for one game step and blinks the food
+void scanJoystick() {
+	int previousDirection = snakeDirection;
+	unsigned long timestamp = millis();
+	bool lastFoodState = false;
+	render(lastFoodState);
+
+	while (millis() < timestamp + snakeSpeed) {
+		// speed: exponential curve, 10...1000 ms per step
+		float raw = analogRead(Pin::potentiometer) / 1023.0;
+		snakeSpeed = 10 + (int)(pow(raw, 3.5) * 990);
+
+		int x = analogRead(Pin::joystickX);
+		int y = analogRead(Pin::joystickY);
+		if (y < joystickHome.y - joystickThreshold) snakeDirection = up;
+		if (y > joystickHome.y + joystickThreshold) snakeDirection = down;
+		if (x < joystickHome.x - joystickThreshold) snakeDirection = left;
+		if (x > joystickHome.x + joystickThreshold) snakeDirection = right;
+
+		// ignore a 180 degree turn
+		if (previousDirection != 0 && abs(snakeDirection - previousDirection) == 2) {
+			snakeDirection = previousDirection;
+		}
+
+		bool foodState = millis() % 100 < 50;
+		if (foodState != lastFoodState) { // redraw only when the blink changes
+			lastFoodState = foodState;
+			render(foodState);
+		}
+	}
+}
+
+void calculateSnake() {
+	switch (snakeDirection) {
+		case up:    snake.row--; break;
+		case right: snake.col++; break;
+		case down:  snake.row++; break;
+		case left:  snake.col--; break;
+		default: return; // not moving yet
+	}
+	fixEdge();
+
+	// hit own body
+	if (gameboard[snake.row][snake.col] > 1) {
+		gameOver = true;
+		return;
+	}
+
+	// food eaten
+	if (snake.row == food.row && snake.col == food.col) {
+		food.row = -1;
+		food.col = -1;
+		snakeLength++;
+		for (int r = 0; r < ROWS; r++) {
+			for (int c = 0; c < COLS; c++) {
+				if (gameboard[r][c] > 0) gameboard[r][c]++;
+			}
+		}
+	}
+
+	gameboard[snake.row][snake.col] = snakeLength + 1;
+
+	for (int r = 0; r < ROWS; r++) {
+		for (int c = 0; c < COLS; c++) {
+			if (gameboard[r][c] > 0) gameboard[r][c]--;
+		}
+	}
+}
+
+// snake appears on the other side when it leaves the screen
+void fixEdge() {
+	if (snake.col < 0) snake.col += COLS;
+	if (snake.col >= COLS) snake.col -= COLS;
+	if (snake.row < 0) snake.row += ROWS;
+	if (snake.row >= ROWS) snake.row -= ROWS;
+}
+
+void handleGameStates() {
+	if (!(gameOver || win)) return;
+
+	int score = snakeLength - initialSnakeLength;
+
+	// flash the screen 5 times
+	for (int i = 0; i < 5; i++) {
+		for (int r = 0; r < ROWS; r++) for (int c = 0; c < COLS; c++) frame[r][c] = gameboard[r][c] == 0;
+		matrix.renderBitmap(frame, ROWS, COLS);
+		delay(100);
+		render(false);
+		delay(100);
+	}
+
+	scrollText(gameOver ? "GAME OVER" : "YOU WIN");
+	scrollText("SCORE " + String(score));
+
+	submitScore(score); // TODO: send the score to the leaderboard (WiFi)
+
+	// reset the game
+	win = false;
+	gameOver = false;
+	snake.row = random(ROWS);
+	snake.col = random(COLS);
+	food.row = -1;
+	food.col = -1;
+	snakeLength = initialSnakeLength;
+	snakeDirection = 0;
+	memset(gameboard, 0, sizeof(gameboard));
+	render(false);
+
+	while (joystickMoved()) {} // wait for the joystick to come back
+}
+
+// placeholder for the online leaderboard
+void submitScore(int score) {
+	Serial.print("Score: ");
+	Serial.println(score);
+}
+
+void calibrateJoystick() {
+	long sx = 0, sy = 0;
+	for (int i = 0; i < 10; i++) {
+		sx += analogRead(Pin::joystickX);
+		sy += analogRead(Pin::joystickY);
+		delay(5);
+	}
+	joystickHome.x = sx / 10;
+	joystickHome.y = sy / 10;
+}
