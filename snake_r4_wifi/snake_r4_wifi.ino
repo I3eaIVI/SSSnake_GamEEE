@@ -2,10 +2,9 @@
  * Snake game for Arduino UNO R4 WiFi (built-in 12x8 LED matrix)
 */
 
-#include "ArduinoGraphics.h" // must be included before Arduino_LED_Matrix.h
+#include "ArduinoGraphics.h"
 #include "Arduino_LED_Matrix.h"
 #include <WiFiS3.h>
-#include "arduino_secrets.h" // SECRET_SSID and SECRET_PASS (do NOT upload this file to GitHub)
 
 // ------------------------- user config ------------------------- //
 
@@ -18,10 +17,9 @@ struct Pin {
 const short initialSnakeLength = 3; // 1...20, recommended 3
 const int joystickThreshold = 160;  // joystick dead zone
 
-// Firebase Realtime Database host, WITHOUT "https://" and without a trailing "/"
-// Example: "snake-leaderboard-12345-default-rtdb.asia-southeast1.firebasedatabase.app"
 const char FIREBASE_HOST[] = "sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app/";
-
+const char SECRET_SSID[] = "ชื่อ-wifi";
+const char SECRET_PASS[] = "รหัสผ่าน-wifi";
 // ------------------------- variables --------------------------- //
 
 const int ROWS = 8;
