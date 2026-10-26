@@ -3,110 +3,176 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Snake Leaderboard</title>
+<title>Snake Game on Arduino UNO R4 WiFi</title>
+<meta name="description" content="เกมงูกินแอปเปิ้ลบน Arduino UNO R4 WiFi พร้อม Online Leaderboard - Project Physical Computing 2026">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #f4f6f3; --card: #ffffff; --text: #1d2a1d; --muted: #6b7a6b;
-    --accent: #2e9e44; --line: #e2e8e2; --gold: #e0a800; --silver: #8a949c; --bronze: #b5703a;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #101510; --card: #1a221a; --text: #e8f1e8; --muted: #8fa08f;
-      --accent: #4ade80; --line: #2a352a; --gold: #facc15; --silver: #b0bac2; --bronze: #d9895a;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
-  }
-  main { max-width: 520px; margin: 0 auto; }
-  h1 { margin: 0 0 4px; font-size: 1.8rem; }
-  .sub { color: var(--muted); margin: 0 0 20px; font-size: .95rem; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 12px 16px; text-align: left; }
-  th { font-size: .8rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
-  td { border-bottom: 1px solid var(--line); }
-  tr:last-child td { border-bottom: 0; }
-  .rank { width: 56px; font-weight: 700; }
-  .score { font-weight: 700; font-size: 1.15rem; color: var(--accent); }
-  .time { color: var(--muted); font-size: .85rem; text-align: right; }
-  th:last-child { text-align: right; }
-  tr.r1 .rank { color: var(--gold); } tr.r2 .rank { color: var(--silver); } tr.r3 .rank { color: var(--bronze); }
-  .msg { padding: 28px 16px; text-align: center; color: var(--muted); }
-  .status { margin-top: 12px; font-size: .8rem; color: var(--muted); text-align: center; }
+:root{--bg:#e4f4ec;--card:#fff;--text:#26342b;--head:#17301f;--muted:#5b6b60;--line:#bfd9cb;--green:#2e9e44;--soft:#f1f7f3}
+@media (prefers-color-scheme:dark){:root{--bg:#101510;--card:#1a221a;--text:#dbe7dd;--head:#eef7ef;--muted:#8fa08f;--line:#2a352a;--green:#4ade80;--soft:#141b14}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Prompt,Tahoma,"Noto Sans Thai",sans-serif;line-height:1.75}
+main{max-width:920px;margin:0 auto;padding:32px 18px 64px}
+h1{font-size:clamp(2.4rem,8vw,4.2rem);margin:0;color:var(--head);line-height:1.1}
+h2{font-size:1.5rem;margin:48px 0 4px;color:var(--head);letter-spacing:.02em;text-transform:uppercase}
+.sub{color:var(--muted);margin:8px 0 0;font-size:1.05rem}
+.stripe{display:flex;gap:4px;margin:6px 0 18px}.stripe i{display:block;height:5px;width:34px;border-radius:3px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 4px;font-size:1.1rem;color:var(--head)}
+.card p{margin:0;font-size:.95rem}
+ul{padding-left:20px}li{margin:4px 0}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+.flow .box{flex:1 1 150px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 8px;font-weight:600;color:var(--head)}
+.flow .box small{display:block;font-weight:400;color:var(--muted)}
+.flow .arr{color:var(--muted);font-size:.8rem;text-align:center;flex:0 0 78px}
+.led{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;background:#0e1a12;padding:14px;border-radius:12px;max-width:380px}
+.led b{aspect-ratio:1;border-radius:50%;background:#23352a}.led b.s{background:#4ade80}.led b.h{background:#b6ff9e}.led b.a{background:#ff4d4d}
+.two{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+th,td{padding:10px 16px;text-align:left}th{font-size:.8rem;color:var(--muted);border-bottom:1px solid var(--line)}
+td{border-bottom:1px solid var(--line)}tr:last-child td{border-bottom:0}
+.r1{color:#e0a800}.r2{color:#8a949c}.r3{color:#b5703a}.sc{color:var(--green);font-weight:700;font-size:1.1rem}.tm{color:var(--muted);font-size:.85rem;text-align:right}
+.note{color:var(--muted);font-size:.85rem;margin-top:8px}
+.links a,.links .off{display:flex;gap:12px;align-items:center;text-decoration:none;color:var(--head);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.links a:hover{border-color:var(--green)}.links .off{opacity:.55}
+.links svg{flex:0 0 34px;width:34px;height:34px;fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.links b{display:block}.links span{font-size:.85rem;color:var(--muted);word-break:break-all}
+.dl{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.dl a{padding:4px 12px;font-size:.85rem;border-radius:20px;background:var(--green);color:#fff}
+.video{aspect-ratio:16/9;width:100%;border:0;border-radius:14px;margin-top:14px;background:#000}
+.team{text-align:center}
+.av{width:96px;height:96px;margin:0 auto 10px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;position:relative;overflow:hidden}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:48px}
 </style>
 </head>
 <body>
 <main>
-  <h1>🐍 Snake Leaderboard</h1>
-  <p class="sub">10 อันดับสูงสุด ส่งคะแนนจาก Arduino UNO R4 WiFi โดยตรง</p>
-  <div class="card">
-    <table>
-      <thead><tr><th>อันดับ</th><th>คะแนน</th><th>เวลา</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div id="msg" class="msg">กำลังโหลด...</div>
-  </div>
-  <p class="status" id="status"></p>
+<header>
+  <h1>Snake Game</h1>
+  <p class="sub">เกมงูกินแอปเปิ้ลบน Arduino UNO R4 WiFi พร้อม Online Leaderboard<br>Project Physical Computing 2026</p>
+  <div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i><i style="background:#d6304a"></i><i style="background:#4a5568"></i></div>
+</header>
+
+<section class="grid">
+  <div class="card"><h3>Arduino UNO R4 WiFi</h3><p>บอร์ดหลัก มี LED Matrix 12x8 และ WiFi ในตัว ใช้ทั้งแสดงผลเกมและส่งคะแนนขึ้นเว็บ</p></div>
+  <div class="card"><h3>Joystick Module</h3><p>รับค่าแกน X/Y เพื่อบังคับทิศทางของงู</p></div>
+  <div class="card"><h3>Potentiometer</h3><p>ปรับความเร็วของเกมแบบต่อเนื่องขณะเล่น</p></div>
+</section>
+
+<h2>Abstract</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
+<p>โปรเจคนี้คือเกมงูกินแอปเปิ้ลที่ทำงานบน Arduino UNO R4 WiFi เพียงบอร์ดเดียว แสดงผลบน LED Matrix 12x8 ในตัวบอร์ด ควบคุมทิศทางด้วย Joystick และปรับความเร็วด้วย Potentiometer เมื่อเกมจบ บอร์ดนับคะแนนเองและส่งผ่าน WiFi ไปเก็บบน Firebase Realtime Database หน้าเว็บบน github.io ดึงคะแนนมาจัดอันดับและแสดง 10 อันดับสูงสุดแบบอัตโนมัติ ผู้เล่นจึงแข่งกันได้ทันทีโดยไม่ต้องกรอกข้อมูลเอง</p>
+
+<h2>Input</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
+<ul><li>Joystick (A2, A3) อ่านค่าแกน X/Y เพื่อกำหนดทิศทางงู และไม่ให้เลี้ยวกลับหลังหันทันที</li><li>Potentiometer (A5) ปรับความเร็วเกมแบบต่อเนื่อง</li></ul>
+
+<h2>Process</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
+<ul><li>สนามเล่น 12x8 พิกเซล งูทะลุขอบไปโผล่อีกฝั่งได้</li><li>สุ่มตำแหน่งแอปเปิ้ล ตรวจการกินและการชนตัวเอง</li><li>กินแล้วงูยาวขึ้น 1 ช่อง คะแนนคือความยาวที่เพิ่มขึ้น</li></ul>
+
+<h2>Connectivity</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
+<p>บอร์ดเชื่อม WiFi ด้วย library WiFiS3 แล้วส่งคะแนนด้วย HTTPS POST (JSON) ไปยัง Firebase Realtime Database หน้าเว็บดึงข้อมูลด้วย fetch() ทุก 10 วินาที โดย Rules ของฐานข้อมูลรับเฉพาะคะแนน 0-500 และห้ามแก้ข้อมูลเดิม</p>
+<div class="flow">
+  <div class="box">Joystick +<small>Potentiometer</small></div><div class="arr">Analog &rarr;</div>
+  <div class="box">UNO R4 WiFi<small>เกม + LED Matrix</small></div><div class="arr">HTTPS POST &rarr;</div>
+  <div class="box">Firebase<small>Realtime Database</small></div><div class="arr">fetch JSON &rarr;</div>
+  <div class="box">github.io<small>Leaderboard Top 10</small></div>
+</div>
+
+<h2>Output</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
+<div class="two">
+  <div><p>LED Matrix แสดงตัวงู แอปเปิ้ลกะพริบ และข้อความ GAME OVER / SCORE เมื่อเกมจบ</p><div class="led" id="led" aria-label="ภาพจำลอง LED Matrix 12x8"></div></div>
+  <div><p>หน้าเว็บแสดง 10 อันดับสูงสุด อัปเดตอัตโนมัติ</p>
+    <table><thead><tr><th>อันดับ</th><th>คะแนน</th><th style="text-align:right">เวลา</th></tr></thead><tbody id="rows"></tbody></table>
+    <p class="note" id="status">กำลังโหลด...</p></div>
+</div>
+
+<h2>Video &amp; Links</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
+<div id="videoBox"></div>
+<div class="grid links" id="links" style="margin-top:14px"></div>
+
+<h2>About Us</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
+<div class="grid" id="team"></div>
+
+<footer>ตรรกะเกมดัดแปลงจากโปรเจค Arduino Snake ของ Ondrej Telka (GPL v3) พอร์ตลง UNO R4 WiFi พร้อมเพิ่มระบบ WiFi และ Online Leaderboard<br>Project Physical Computing 2026</footer>
 </main>
 
 <script>
-// Put your Firebase Realtime Database URL here (no trailing slash)
-const DB_URL = "https://sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app";
-const REFRESH_MS = 10000;
+// ===== ตั้งค่าตรงนี้ที่เดียว =====
+const CONFIG = {
+  DB_URL: "https://sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app", // ไม่มี / ท้าย
+  YOUTUBE_URL: "",                                   // ใส่ลิงก์คลิป YouTube เมื่ออัปแล้ว
+  GITHUB_URL: "https://github.com/I3ealVI/SSSnake_GamEEE",
+  WEBSITE_URL: "https://i3ealvi.github.io/SSSnake_GamEEE/",
+  POSTER_PDF: "assets/snake_poster_A1.pdf",          // วางไฟล์ไว้ใน repo ตามชื่อนี้ (ลบบรรทัดทิ้งถ้าไม่มี)
+  POSTER_AI: "assets/snake_poster_A1.ai",
+  MEMBERS: [                                         // photo: ชื่อไฟล์ใน images/ (ไม่ใส่ก็ได้)
+    {name:"ชื่อ - นามสกุล", id:"65xxxxxx", photo:"member1.jpg"},
+    {name:"ชื่อ - นามสกุล", id:"65xxxxxx", photo:"member2.jpg"},
+    {name:"ชื่อ - นามสกุล", id:"65xxxxxx", photo:"member3.jpg"},
+    {name:"ชื่อ - นามสกุล", id:"65xxxxxx", photo:"member4.jpg"}
+  ]
+};
 
-const rowsEl = document.getElementById("rows");
-const msgEl = document.getElementById("msg");
-const statusEl = document.getElementById("status");
+// LED matrix mock
+const snake=[[5,1],[5,2],[5,3],[5,4],[5,5],[4,5],[3,5],[3,6],[3,7],[3,8]],head=[3,9],apple=[3,11];
+const led=document.getElementById("led");
+for(let r=0;r<8;r++)for(let c=0;c<12;c++){const b=document.createElement("b");
+  if(r===head[0]&&c===head[1])b.className="h";else if(r===apple[0]&&c===apple[1])b.className="a";
+  else if(snake.some(p=>p[0]===r&&p[1]===c))b.className="s";led.appendChild(b);}
 
-function fmtTime(ts) {
-  if (!ts) return "";
-  return new Date(ts).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-}
+// links
+const icons={
+  yt:'<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z"/></svg>',
+  web:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+  code:'<svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>',
+  poster:'<svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>'};
+const links=document.getElementById("links");
+function card(icon,title,url,extra){
+  const el=document.createElement(url?"a":"div");
+  if(url){el.href=url;el.target="_blank";el.rel="noopener";}else el.className="off";
+  el.innerHTML=icons[icon]+'<div><b>'+title+'</b><span>'+(url||"เร็วๆ นี้")+'</span></div>';
+  if(extra){const wrap=document.createElement("div");wrap.appendChild(el);wrap.appendChild(extra);return wrap;}
+  return el;}
+links.appendChild(card("yt","Video Presentation",CONFIG.YOUTUBE_URL));
+links.appendChild(card("web","Project Website",CONFIG.WEBSITE_URL));
+links.appendChild(card("code","Source Code",CONFIG.GITHUB_URL));
+const dl=document.createElement("div");dl.className="dl";
+[["Download PDF",CONFIG.POSTER_PDF],["Download AI",CONFIG.POSTER_AI]].forEach(([t,u])=>{if(u){const a=document.createElement("a");a.href=u;a.textContent=t;a.download="";dl.appendChild(a);}});
+links.appendChild(card("poster","Project Poster (A1)",CONFIG.POSTER_PDF||"",dl));
 
-async function load() {
-  try {
-    const url = DB_URL + '/scores.json?orderBy="score"&limitToLast=10';
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    const list = Object.values(data || {})
-      .filter(x => x && typeof x.score === "number")
-      .sort((a, b) => b.score - a.score || (a.ts || 0) - (b.ts || 0))
-      .slice(0, 10);
+// youtube embed
+const m=(CONFIG.YOUTUBE_URL||"").match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);
+if(m){const f=document.createElement("iframe");f.className="video";f.src="https://www.youtube-nocookie.com/embed/"+m[1];
+  f.title="Video Presentation";f.allow="accelerometer; encrypted-media; picture-in-picture";f.allowFullscreen=true;document.getElementById("videoBox").appendChild(f);}
 
+// members
+const team=document.getElementById("team");
+CONFIG.MEMBERS.forEach(p=>{const d=document.createElement("div");d.className="card team";
+  const av=document.createElement("div");av.className="av";av.textContent=(p.name||"?").trim().charAt(0);
+  if(p.photo){const i=document.createElement("img");i.src="images/"+p.photo;i.alt=p.name;i.onerror=()=>i.remove();av.appendChild(i);}
+  d.appendChild(av);const n=document.createElement("h3");n.textContent=p.name;const s=document.createElement("p");s.textContent=p.id;
+  d.appendChild(n);d.appendChild(s);team.appendChild(d);});
+
+// leaderboard
+const rowsEl=document.getElementById("rows"),statusEl=document.getElementById("status");
+const fmt=ts=>ts?new Date(ts).toLocaleString("th-TH",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
+async function load(){
+  try{
+    const res=await fetch(CONFIG.DB_URL+'/scores.json?orderBy="score"&limitToLast=10');
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    const list=Object.values(data||{}).filter(x=>x&&typeof x.score==="number")
+      .sort((a,b)=>b.score-a.score||(a.ts||0)-(b.ts||0)).slice(0,10);
     rowsEl.replaceChildren();
-    list.forEach((item, i) => {
-      const tr = document.createElement("tr");
-      tr.className = "r" + (i + 1);
-      const cells = [
-        ["rank", String(i + 1)],
-        ["score", String(item.score)],
-        ["time", fmtTime(item.ts)]
-      ];
-      cells.forEach(([cls, text]) => {
-        const td = document.createElement("td");
-        td.className = cls;
-        td.textContent = text;
-        tr.appendChild(td);
-      });
-      rowsEl.appendChild(tr);
-    });
-
-    msgEl.style.display = list.length ? "none" : "block";
-    msgEl.textContent = "ยังไม่มีคะแนน ลองเล่นเกมดูสิ!";
-    statusEl.textContent = "อัปเดตล่าสุด " + new Date().toLocaleTimeString("th-TH");
-  } catch (e) {
-    msgEl.style.display = "block";
-    msgEl.textContent = "โหลดข้อมูลไม่สำเร็จ";
-    statusEl.textContent = String(e);
-  }
+    list.forEach((it,i)=>{const tr=document.createElement("tr");
+      [["r"+Math.min(i+1,4),i+1],["sc",it.score],["tm",fmt(it.ts)]].forEach(([c,t])=>{const td=document.createElement("td");td.className=c;td.textContent=t;tr.appendChild(td);});
+      rowsEl.appendChild(tr);});
+    statusEl.textContent=list.length?"อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH"):"ยังไม่มีคะแนน ลองเล่นเกมดูสิ!";
+  }catch(e){statusEl.textContent="โหลดข้อมูลไม่สำเร็จ ("+e.message+")";}
 }
-
-load();
-setInterval(load, REFRESH_MS);
+load();setInterval(load,10000);
 </script>
 </body>
 </html>
