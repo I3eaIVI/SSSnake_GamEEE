@@ -17,7 +17,7 @@ struct Pin {
 const short initialSnakeLength = 3; // 1...20, recommended 3
 const int joystickThreshold = 160;  // joystick dead zone
 
-const char FIREBASE_HOST[] = "sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app/";
+const char FIREBASE_HOST[] = "sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app";
 const char SECRET_SSID[] = "ชื่อ-wifi";
 const char SECRET_PASS[] = "รหัสผ่าน-wifi";
 // ------------------------- variables --------------------------- //
