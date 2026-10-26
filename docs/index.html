@@ -84,8 +84,8 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:48px}
 <div class="two">
   <div><p>LED Matrix แสดงตัวงู แอปเปิ้ลกะพริบ และข้อความ GAME OVER / SCORE เมื่อเกมจบ</p><div class="led" id="led" aria-label="ภาพจำลอง LED Matrix 12x8"></div></div>
   <div><p>หน้าเว็บแสดง 10 อันดับสูงสุด อัปเดตอัตโนมัติ</p>
-    <table><thead><tr><th>อันดับ</th><th>คะแนน</th><th style="text-align:right">เวลา</th></tr></thead><tbody id="rows"></tbody></table>
-    <p class="note" id="status">กำลังโหลด...</p></div>
+    <table><thead><tr><th>อันดับ</th><th>คะแนน</th><th style="text-align:right">เวลา</th></tr></thead><tbody><tr><td class="r1">1</td><td class="sc">24</td><td class="tm">ตัวอย่าง</td></tr><tr><td class="r2">2</td><td class="sc">18</td><td class="tm">ตัวอย่าง</td></tr><tr><td class="r3">3</td><td class="sc">15</td><td class="tm">ตัวอย่าง</td></tr><tr><td class="r4">4</td><td class="sc">11</td><td class="tm">ตัวอย่าง</td></tr><tr><td class="r4">5</td><td class="sc">7</td><td class="tm">ตัวอย่าง</td></tr></tbody></table>
+    <p class="note">ตัวอย่างข้อมูลเพื่อแสดงรูปแบบเท่านั้น ดูอันดับจริงได้ที่ Live Leaderboard</p></div>
 </div>
 
 <h2>Video &amp; Links</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
@@ -101,10 +101,9 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:48px}
 <script>
 // ===== ตั้งค่าตรงนี้ที่เดียว =====
 const CONFIG = {
-  DB_URL: "https://sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app", // ไม่มี / ท้าย
   YOUTUBE_URL: "",                                   // ใส่ลิงก์คลิป YouTube เมื่ออัปแล้ว
-  GITHUB_URL: "https://github.com/I3ealVI/SSSnake_GamEEE",
-  WEBSITE_URL: "https://i3ealvi.github.io/SSSnake_GamEEE/",
+  GITHUB_URL: "https://github.com/I3eaIVI/SSSnake_GamEEE",
+  WEBSITE_URL: "https://i3eaivi.github.io/SSSnake_GamEEE/leaderboard/",
   POSTER_PDF: "assets/snake_poster_A1.pdf",          // วางไฟล์ไว้ใน repo ตามชื่อนี้ (ลบบรรทัดทิ้งถ้าไม่มี)
   POSTER_AI: "assets/snake_poster_A1.ai",
   MEMBERS: [                                         // photo: ชื่อไฟล์ใน images/ (ไม่ใส่ก็ได้)
@@ -136,7 +135,7 @@ function card(icon,title,url,extra){
   if(extra){const wrap=document.createElement("div");wrap.appendChild(el);wrap.appendChild(extra);return wrap;}
   return el;}
 links.appendChild(card("yt","Video Presentation",CONFIG.YOUTUBE_URL));
-links.appendChild(card("web","Project Website",CONFIG.WEBSITE_URL));
+links.appendChild(card("web","Live Leaderboard",CONFIG.WEBSITE_URL));
 links.appendChild(card("code","Source Code",CONFIG.GITHUB_URL));
 const dl=document.createElement("div");dl.className="dl";
 [["Download PDF",CONFIG.POSTER_PDF],["Download AI",CONFIG.POSTER_AI]].forEach(([t,u])=>{if(u){const a=document.createElement("a");a.href=u;a.textContent=t;a.download="";dl.appendChild(a);}});
@@ -155,24 +154,6 @@ CONFIG.MEMBERS.forEach(p=>{const d=document.createElement("div");d.className="ca
   d.appendChild(av);const n=document.createElement("h3");n.textContent=p.name;const s=document.createElement("p");s.textContent=p.id;
   d.appendChild(n);d.appendChild(s);team.appendChild(d);});
 
-// leaderboard
-const rowsEl=document.getElementById("rows"),statusEl=document.getElementById("status");
-const fmt=ts=>ts?new Date(ts).toLocaleString("th-TH",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
-async function load(){
-  try{
-    const res=await fetch(CONFIG.DB_URL+'/scores.json?orderBy="score"&limitToLast=10');
-    if(!res.ok)throw new Error("HTTP "+res.status);
-    const data=await res.json();
-    const list=Object.values(data||{}).filter(x=>x&&typeof x.score==="number")
-      .sort((a,b)=>b.score-a.score||(a.ts||0)-(b.ts||0)).slice(0,10);
-    rowsEl.replaceChildren();
-    list.forEach((it,i)=>{const tr=document.createElement("tr");
-      [["r"+Math.min(i+1,4),i+1],["sc",it.score],["tm",fmt(it.ts)]].forEach(([c,t])=>{const td=document.createElement("td");td.className=c;td.textContent=t;tr.appendChild(td);});
-      rowsEl.appendChild(tr);});
-    statusEl.textContent=list.length?"อัปเดตล่าสุด "+new Date().toLocaleTimeString("th-TH"):"ยังไม่มีคะแนน ลองเล่นเกมดูสิ!";
-  }catch(e){statusEl.textContent="โหลดข้อมูลไม่สำเร็จ ("+e.message+")";}
-}
-load();setInterval(load,10000);
 </script>
 </body>
 </html>
