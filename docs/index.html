@@ -39,8 +39,6 @@ td{border-bottom:1px solid var(--line)}tr:last-child td{border-bottom:0}
 .links a:hover{border-color:var(--green)}.links .off{opacity:.55}
 .links svg{flex:0 0 34px;width:34px;height:34px;fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .links b{display:block}.links span{font-size:.85rem;color:var(--muted);word-break:break-all}
-.dl{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
-.dl a{padding:4px 12px;font-size:.85rem;border-radius:20px;background:var(--green);color:#fff}
 .video{aspect-ratio:16/9;width:100%;border:0;border-radius:14px;margin-top:14px;background:#000}
 .team{text-align:center}
 .av{width:96px;height:96px;margin:0 auto 10px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;position:relative;overflow:hidden}
@@ -104,8 +102,7 @@ const CONFIG = {
   YOUTUBE_URL: "",                                   // ใส่ลิงก์คลิป YouTube เมื่ออัปแล้ว
   GITHUB_URL: "https://github.com/I3eaIVI/SSSnake_GamEEE",
   WEBSITE_URL: "https://i3eaivi.github.io/SSSnake_GamEEE/leaderboard/",
-  POSTER_PDF: "assets/snake_poster_A1.pdf",          // วางไฟล์ไว้ใน repo ตามชื่อนี้ (ลบบรรทัดทิ้งถ้าไม่มี)
-  POSTER_AI: "assets/snake_poster_A1.ai",
+  POSTER_URL: "https://github.com/I3eaIVI/SSSnake_GamEEE/tree/main/docs/assets", // กดแล้วไปที่โฟลเดอร์โปสเตอร์ใน GitHub
   MEMBERS: [                                         // photo: ชื่อไฟล์ใน images/ (ไม่ใส่ก็ได้)
     {name:"นายเตชิษฎ์ วงศ์โสภา", id:"68070049", photo:"member1.jpg"},
     {name:"นายธิติวุฒิ ถนอมวงศ์", id:"68070067", photo:"member2.jpg"},
@@ -137,9 +134,7 @@ function card(icon,title,url,extra){
 links.appendChild(card("yt","Video Presentation",CONFIG.YOUTUBE_URL));
 links.appendChild(card("web","Live Leaderboard",CONFIG.WEBSITE_URL));
 links.appendChild(card("code","Source Code",CONFIG.GITHUB_URL));
-const dl=document.createElement("div");dl.className="dl";
-[["Download PDF",CONFIG.POSTER_PDF],["Download AI",CONFIG.POSTER_AI]].forEach(([t,u])=>{if(u){const a=document.createElement("a");a.href=u;a.textContent=t;a.download="";dl.appendChild(a);}});
-links.appendChild(card("poster","Project Poster (A1)",CONFIG.POSTER_PDF||"",dl));
+links.appendChild(card("poster","Project Poster (A1)",CONFIG.POSTER_URL));
 
 // youtube embed
 const m=(CONFIG.YOUTUBE_URL||"").match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);
