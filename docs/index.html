@@ -39,7 +39,6 @@ td{border-bottom:1px solid var(--line)}tr:last-child td{border-bottom:0}
 .links a:hover{border-color:var(--green)}.links .off{opacity:.55}
 .links svg{flex:0 0 34px;width:34px;height:34px;fill:none;stroke:var(--green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .links b{display:block}.links span{font-size:.85rem;color:var(--muted);word-break:break-all}
-.video{aspect-ratio:16/9;width:100%;border:0;border-radius:14px;margin-top:14px;background:#000}
 .team{text-align:center}
 .av{width:96px;height:96px;margin:0 auto 10px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;position:relative;overflow:hidden}
 .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -87,8 +86,7 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:48px}
 </div>
 
 <h2>Video &amp; Links</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
-<div id="videoBox"></div>
-<div class="grid links" id="links" style="margin-top:14px"></div>
+<div class="grid links" id="links"></div>
 
 <h2>About Us</h2><div class="stripe"><i style="background:#3dbe8b"></i><i style="background:#8bc34a"></i><i style="background:#e5b22b"></i></div>
 <div class="grid" id="team"></div>
@@ -97,17 +95,16 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:48px}
 </main>
 
 <script>
-// ===== ตั้งค่าตรงนี้ที่เดียว =====
 const CONFIG = {
-  YOUTUBE_URL: "",                                   // ใส่ลิงก์คลิป YouTube เมื่ออัปแล้ว
+  YOUTUBE_URL: "https://youtu.be/Y_uNocEEXTE",
   GITHUB_URL: "https://github.com/I3eaIVI/SSSnake_GamEEE",
   WEBSITE_URL: "https://i3eaivi.github.io/SSSnake_GamEEE/leaderboard/",
   POSTER_URL: "https://github.com/I3eaIVI/SSSnake_GamEEE/tree/main/docs/assets", // กดแล้วไปที่โฟลเดอร์โปสเตอร์ใน GitHub
   MEMBERS: [                                         // photo: ชื่อไฟล์ใน images/ (ไม่ใส่ก็ได้)
-    {name:"นายเตชิษฎ์ วงศ์โสภา", id:"68070049", photo:"member1.jpg"},
-    {name:"นายธิติวุฒิ ถนอมวงศ์", id:"68070067", photo:"member2.jpg"},
-    {name:"นายธีรนันท์ ได้ทุกทาง", id:"68070069", photo:"member3.jpg"},
-    {name:"นายนพดล ดวงใจรักเกษม", id:"68070076", photo:"member4.jpg"}
+    {name:"นายเตชิษฎ์ วงศ์โสภา", id:"68070049", photo:"68070049.jpg"},
+    {name:"นายธิติวุฒิ ถนอมวงศ์", id:"68070067", photo:"68070067.jpg"},
+    {name:"นายธีรนันท์ ได้ทุกทาง", id:"68070069", photo:"68070069.jpg"},
+    {name:"นายนพดล ดวงใจรักเกษม", id:"68070076", photo:"68070076.jpg"}
   ]
 };
 
@@ -135,11 +132,6 @@ links.appendChild(card("yt","Video Presentation",CONFIG.YOUTUBE_URL));
 links.appendChild(card("web","Live Leaderboard",CONFIG.WEBSITE_URL));
 links.appendChild(card("code","Source Code",CONFIG.GITHUB_URL));
 links.appendChild(card("poster","Project Poster (A1)",CONFIG.POSTER_URL));
-
-// youtube embed
-const m=(CONFIG.YOUTUBE_URL||"").match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);
-if(m){const f=document.createElement("iframe");f.className="video";f.src="https://www.youtube-nocookie.com/embed/"+m[1];
-  f.title="Video Presentation";f.allow="accelerometer; encrypted-media; picture-in-picture";f.allowFullscreen=true;document.getElementById("videoBox").appendChild(f);}
 
 // members
 const team=document.getElementById("team");
