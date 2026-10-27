@@ -29,3 +29,9 @@
 | 68070067 | นายธิติวุฒิ ถนอมวงศ์ | <img src="assets/image/68070067.jpg" width="250"> |
 | 68070069 | นายธีรนันท์ ได้ทุกทาง | <img src="assets/image/68070069.jpg" width="250"> |
 | 68070076 | นายนพดล ดวงใจรักเกษม | <img src="assets/image/68070076.jpg" width="250"> |
+
+## Link
+* LeaderBoard: https://i3eaivi.github.io/SSSnake_GamEEE/leaderboard/
+* Web: https://i3eaivi.github.io/SSSnake_GamEEE/
+* Firebase Realtime Database: https://console.firebase.google.com/u/0/project/sssnake-gameee/database/sssnake-gameee-default-rtdb/data
+* Poster: https://github.com/I3eaIVI/SSSnake_GamEEE/tree/main/docs/assets
