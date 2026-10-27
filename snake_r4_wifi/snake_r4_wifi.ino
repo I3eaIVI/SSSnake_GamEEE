@@ -71,6 +71,7 @@ void setup() {
 	calibrateJoystick(); // do not touch the joystick now
 	scrollText("SNAKE");
 	connectWiFi(); // the game still works offline if this fails
+	liveConnect();
 }
 
 void loop() {
@@ -78,6 +79,7 @@ void loop() {
 	scanJoystick();
 	calculateSnake();
 	if (snakeDirection != 0 && !gameOver && !win) sendLive(snakeLength - initialSnakeLength, false);
+	else if (snakeDirection == 0) liveConnect(); // รอเริ่มเกม ต่อใหม่ได้โดยไม่กระทบการเล่น
 	handleGameStates();
 }
 
@@ -299,16 +301,29 @@ void calibrateJoystick() {
 	joystickHome.x = sx / 10;
 	joystickHome.y = sy / 10;
 }
+void liveConnect() {
+#if LIVE_VIEW
+	if (WiFi.status() != WL_CONNECTED || liveClient.connected()) return;
+	liveClient.stop();
+	liveClient.connect(FIREBASE_HOST, 443);
+#endif
+}
+
 void sendLive(int score, bool over) {
 #if LIVE_VIEW
 	if (WiFi.status() != WL_CONNECTED) return;
-	if (!over && millis() - lastLive < 350) return;
+	if (!over && millis() - lastLive < 700) return;
 	lastLive = millis();
 	if (!liveClient.connected()) {
-		liveClient.stop();
-		if (!liveClient.connect(FIREBASE_HOST, 443)) return;
+		if (!over) return; // กลางเกมห้ามต่อใหม่ เพราะทำให้เกมค้าง
+		liveConnect();
+		if (!liveClient.connected()) return;
 	}
-	while (liveClient.available()) liveClient.read(); // ล้างคำตอบเก่า
+	if (liveClient.available()) { // ล้างคำตอบเก่าทีเดียว
+		uint8_t tmp[128];
+		while (liveClient.available()) liveClient.read(tmp, sizeof(tmp));
+	}
+
 	char g[97];
 	for (int r = 0; r < ROWS; r++) {
 		for (int c = 0; c < COLS; c++) {
@@ -320,15 +335,12 @@ void sendLive(int score, bool over) {
 		}
 	}
 	g[96] = 0;
-	String body = String("{\"g\":\"") + g + "\",\"s\":" + score + ",\"o\":" + (over ? 1 : 0) + ",\"t\":{\".sv\":\"timestamp\"}}";
-	liveClient.println("PUT /live.json HTTP/1.1");
-	liveClient.print("Host: ");
-	liveClient.println(FIREBASE_HOST);
-	liveClient.println("Content-Type: application/json");
-	liveClient.print("Content-Length: ");
-	liveClient.println(body.length());
-	liveClient.println("Connection: keep-alive");
-	liveClient.println();
-	liveClient.print(body);
+
+	char body[200];
+	int bl = snprintf(body, sizeof(body), "{\"g\":\"%s\",\"s\":%d,\"o\":%d,\"t\":{\".sv\":\"timestamp\"}}", g, score, over ? 1 : 0);
+	char buf[400];
+	int n = snprintf(buf, sizeof(buf), "PUT /live.json HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: keep-alive\r\n\r\n%s", FIREBASE_HOST, bl, body);
+	liveClient.write((const uint8_t *)buf, n); // ส่งก้อนเดียว
 #endif
 }
+
