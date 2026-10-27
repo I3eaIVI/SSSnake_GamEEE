@@ -20,6 +20,9 @@ const int joystickThreshold = 160;  // joystick dead zone
 const char FIREBASE_HOST[] = "sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app";
 const char SECRET_SSID[] = "ชื่อ-wifi";
 const char SECRET_PASS[] = "รหัสผ่าน-wifi";
+#define LIVE_VIEW 1   // 1 = ส่งภาพเกมสดขึ้นเว็บ, 0 = ปิด (ถ้าเกมสะดุดให้ลองเป็น 0)
+WiFiSSLClient liveClient;
+unsigned long lastLive = 0;
 // ------------------------- variables --------------------------- //
 
 const int ROWS = 8;
@@ -74,6 +77,7 @@ void loop() {
 	generateFood();
 	scanJoystick();
 	calculateSnake();
+	if (snakeDirection != 0 && !gameOver && !win) sendLive(snakeLength - initialSnakeLength, false);
 	handleGameStates();
 }
 
@@ -203,6 +207,7 @@ void handleGameStates() {
 	if (!(gameOver || win)) return;
 
 	int score = snakeLength - initialSnakeLength;
+	sendLive(score, true); // ส่งภาพสุดท้ายตอนเกมจบ
 
 	// flash the screen 5 times
 	for (int i = 0; i < 5; i++) {
@@ -293,4 +298,37 @@ void calibrateJoystick() {
 	}
 	joystickHome.x = sx / 10;
 	joystickHome.y = sy / 10;
+}
+void sendLive(int score, bool over) {
+#if LIVE_VIEW
+	if (WiFi.status() != WL_CONNECTED) return;
+	if (!over && millis() - lastLive < 350) return;
+	lastLive = millis();
+	if (!liveClient.connected()) {
+		liveClient.stop();
+		if (!liveClient.connect(FIREBASE_HOST, 443)) return;
+	}
+	while (liveClient.available()) liveClient.read(); // ล้างคำตอบเก่า
+	char g[97];
+	for (int r = 0; r < ROWS; r++) {
+		for (int c = 0; c < COLS; c++) {
+			char ch = '0';
+			if (gameboard[r][c] > 0) ch = '1';
+			if (r == snake.row && c == snake.col) ch = '3';
+			if (r == food.row && c == food.col) ch = '2';
+			g[r * COLS + c] = ch;
+		}
+	}
+	g[96] = 0;
+	String body = String("{\"g\":\"") + g + "\",\"s\":" + score + ",\"o\":" + (over ? 1 : 0) + ",\"t\":{\".sv\":\"timestamp\"}}";
+	liveClient.println("PUT /live.json HTTP/1.1");
+	liveClient.print("Host: ");
+	liveClient.println(FIREBASE_HOST);
+	liveClient.println("Content-Type: application/json");
+	liveClient.print("Content-Length: ");
+	liveClient.println(body.length());
+	liveClient.println("Connection: keep-alive");
+	liveClient.println();
+	liveClient.print(body);
+#endif
 }

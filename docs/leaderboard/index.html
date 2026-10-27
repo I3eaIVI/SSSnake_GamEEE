@@ -5,43 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Snake Leaderboard</title>
 <style>
-  :root {
-    --bg: #f4f6f3; --card: #ffffff; --text: #1d2a1d; --muted: #6b7a6b;
-    --accent: #2e9e44; --line: #e2e8e2; --gold: #e0a800; --silver: #8a949c; --bronze: #b5703a;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #101510; --card: #1a221a; --text: #e8f1e8; --muted: #8fa08f;
-      --accent: #4ade80; --line: #2a352a; --gold: #facc15; --silver: #b0bac2; --bronze: #d9895a;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif;
-  }
-  main { max-width: 520px; margin: 0 auto; }
-  h1 { margin: 0 0 4px; font-size: 1.8rem; }
-  .sub { color: var(--muted); margin: 0 0 20px; font-size: .95rem; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 12px 16px; text-align: left; }
-  th { font-size: .8rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
-  td { border-bottom: 1px solid var(--line); }
-  tr:last-child td { border-bottom: 0; }
-  .rank { width: 56px; font-weight: 700; }
-  .score { font-weight: 700; font-size: 1.15rem; color: var(--accent); }
-  .time { color: var(--muted); font-size: .85rem; text-align: right; }
-  th:last-child { text-align: right; }
-  tr.r1 .rank { color: var(--gold); } tr.r2 .rank { color: var(--silver); } tr.r3 .rank { color: var(--bronze); }
-  .msg { padding: 28px 16px; text-align: center; color: var(--muted); }
-  .status { margin-top: 12px; font-size: .8rem; color: var(--muted); text-align: center; }
+  :root{--bg:#f4f6f3;--card:#fff;--text:#1d2a1d;--muted:#6b7a6b;--accent:#2e9e44;--line:#e2e8e2;--gold:#e0a800;--silver:#8a949c;--bronze:#b5703a;--off:#23352a}
+  @media (prefers-color-scheme:dark){:root{--bg:#101510;--card:#1a221a;--text:#e8f1e8;--muted:#8fa08f;--accent:#4ade80;--line:#2a352a;--gold:#facc15;--silver:#b0bac2;--bronze:#d9895a}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai",sans-serif}
+  main{max-width:520px;margin:0 auto}
+  h1{margin:0 0 4px;font-size:1.8rem}.sub{color:var(--muted);margin:0 0 20px;font-size:.95rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:18px}
+  .live{padding:16px}
+  .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .badge{font-size:.8rem;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--line);color:var(--muted)}
+  .badge.on{background:#e5484d;color:#fff}.badge.over{background:var(--gold);color:#1d2a1d}
+  .big{font-size:2rem;font-weight:700;color:var(--accent);line-height:1}
+  .led{display:grid;grid-template-columns:repeat(12,1fr);gap:5%;background:#0e1a12;padding:14px;border-radius:12px;transition:opacity .3s}
+  .led.idle{opacity:.45}
+  .led b{aspect-ratio:1;border-radius:50%;background:var(--off)}
+  .led b.s{background:#4ade80}.led b.h{background:#b6ff9e}.led b.a{background:#ff4d4d}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:12px 16px;text-align:left}th{font-size:.8rem;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line)}
+  td{border-bottom:1px solid var(--line)}tr:last-child td{border-bottom:0}
+  .rank{width:56px;font-weight:700}.score{font-weight:700;font-size:1.15rem;color:var(--accent)}.time{color:var(--muted);font-size:.85rem;text-align:right}
+  th:last-child{text-align:right}tr.r1 .rank{color:var(--gold)}tr.r2 .rank{color:var(--silver)}tr.r3 .rank{color:var(--bronze)}
+  .msg{padding:28px 16px;text-align:center;color:var(--muted)}.status{margin-top:-6px;font-size:.8rem;color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
 <main>
   <h1>🐍 Snake Leaderboard</h1>
-  <p class="sub">10 อันดับสูงสุด ส่งคะแนนจาก Arduino UNO R4 WiFi โดยตรง</p>
+  <p class="sub">เล่นสดจาก Arduino UNO R4 WiFi และ 10 อันดับสูงสุด</p>
+
+  <div class="card live">
+    <div class="bar"><span class="badge" id="badge">ไม่มีผู้เล่นตอนนี้</span><span><small style="color:var(--muted)">คะแนน </small><span class="big" id="liveScore">0</span></span></div>
+    <div class="led idle" id="led"></div>
+  </div>
+
   <div class="card">
     <table>
       <thead><tr><th>อันดับ</th><th>คะแนน</th><th>เวลา</th></tr></thead>
@@ -53,60 +50,67 @@
 </main>
 
 <script>
-// Put your Firebase Realtime Database URL here (no trailing slash)
-const DB_URL = "https://sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app";
-const REFRESH_MS = 10000;
+const DB_URL = "https://sssnake-gameee-default-rtdb.asia-southeast1.firebasedatabase.app"; // ไม่มี / ท้าย
+const REFRESH_MS = 10000, STALE_MS = 6000, COLS = 12, ROWS = 8;
 
-const rowsEl = document.getElementById("rows");
-const msgEl = document.getElementById("msg");
-const statusEl = document.getElementById("status");
+// ---------- live view ----------
+const ledEl = document.getElementById("led"), badge = document.getElementById("badge"), liveScore = document.getElementById("liveScore");
+const dots = [];
+for (let i = 0; i < ROWS * COLS; i++) { const b = document.createElement("b"); ledEl.appendChild(b); dots.push(b); }
+let live = {g: "0".repeat(96), s: 0, o: 0}, lastEvent = 0, wasOver = false;
 
-function fmtTime(ts) {
-  if (!ts) return "";
-  return new Date(ts).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+function drawLive() {
+  const stale = Date.now() - lastEvent > STALE_MS;
+  const over = live.o === 1;
+  for (let i = 0; i < dots.length; i++) {
+    const ch = live.g[i];
+    dots[i].className = ch === "1" ? "s" : ch === "3" ? "h" : ch === "2" ? "a" : "";
+  }
+  ledEl.classList.toggle("idle", stale && !over);
+  liveScore.textContent = live.s;
+  badge.className = "badge" + (over ? " over" : stale ? "" : " on");
+  badge.textContent = over ? "จบเกมแล้ว" : stale ? "ไม่มีผู้เล่นตอนนี้" : "● กำลังเล่นสด";
+  if (over && !wasOver) setTimeout(loadScores, 2500);   // score is posted just after game over
+  wasOver = over;
 }
+function applyLive(path, data) {
+  if (data === null) return;
+  if (path === "/") { if (typeof data.g === "string") live = {g: data.g, s: data.s || 0, o: data.o || 0}; }
+  else { const k = path.slice(1); if (k in live) live[k] = data; }
+  lastEvent = Date.now(); drawLive();
+}
+function startStream() {
+  const es = new EventSource(DB_URL + "/live.json");
+  ["put", "patch"].forEach(t => es.addEventListener(t, e => { try { const m = JSON.parse(e.data); applyLive(m.path, m.data); } catch (_) {} }));
+  es.onerror = () => { /* the browser reconnects by itself */ };
+}
+startStream();
+setInterval(drawLive, 1000);   // so "no player" appears even when no events arrive
 
-async function load() {
+// ---------- top 10 ----------
+const rowsEl = document.getElementById("rows"), msgEl = document.getElementById("msg"), statusEl = document.getElementById("status");
+const fmtTime = ts => ts ? new Date(ts).toLocaleString("th-TH", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "";
+async function loadScores() {
   try {
-    const url = DB_URL + '/scores.json?orderBy="score"&limitToLast=10';
-    const res = await fetch(url);
+    const res = await fetch(DB_URL + '/scores.json?orderBy="score"&limitToLast=10');
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    const list = Object.values(data || {})
-      .filter(x => x && typeof x.score === "number")
-      .sort((a, b) => b.score - a.score || (a.ts || 0) - (b.ts || 0))
-      .slice(0, 10);
-
+    const list = Object.values(data || {}).filter(x => x && typeof x.score === "number")
+      .sort((a, b) => b.score - a.score || (a.ts || 0) - (b.ts || 0)).slice(0, 10);
     rowsEl.replaceChildren();
     list.forEach((item, i) => {
-      const tr = document.createElement("tr");
-      tr.className = "r" + (i + 1);
-      const cells = [
-        ["rank", String(i + 1)],
-        ["score", String(item.score)],
-        ["time", fmtTime(item.ts)]
-      ];
-      cells.forEach(([cls, text]) => {
-        const td = document.createElement("td");
-        td.className = cls;
-        td.textContent = text;
-        tr.appendChild(td);
+      const tr = document.createElement("tr"); tr.className = "r" + (i + 1);
+      [["rank", String(i + 1)], ["score", String(item.score)], ["time", fmtTime(item.ts)]].forEach(([c, t]) => {
+        const td = document.createElement("td"); td.className = c; td.textContent = t; tr.appendChild(td);
       });
       rowsEl.appendChild(tr);
     });
-
     msgEl.style.display = list.length ? "none" : "block";
     msgEl.textContent = "ยังไม่มีคะแนน ลองเล่นเกมดูสิ!";
-    statusEl.textContent = "อัปเดตล่าสุด " + new Date().toLocaleTimeString("th-TH");
-  } catch (e) {
-    msgEl.style.display = "block";
-    msgEl.textContent = "โหลดข้อมูลไม่สำเร็จ";
-    statusEl.textContent = String(e);
-  }
+    statusEl.textContent = "อัปเดตอันดับล่าสุด " + new Date().toLocaleTimeString("th-TH");
+  } catch (e) { msgEl.style.display = "block"; msgEl.textContent = "โหลดข้อมูลไม่สำเร็จ"; statusEl.textContent = String(e); }
 }
-
-load();
-setInterval(load, REFRESH_MS);
+loadScores(); setInterval(loadScores, REFRESH_MS);
 </script>
 </body>
 </html>
